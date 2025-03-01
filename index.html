@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Druk 3D - Wycena</title>
+    <title>Zamów Druk 3D</title>
     <style>
         body {
             background-color: #121212;
@@ -15,8 +15,17 @@
         h1 {
             color: #0099ff;
         }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px #0077cc;
+        }
         input, button {
-            margin: 10px;
+            width: 100%;
+            margin: 10px 0;
             padding: 10px;
             border-radius: 5px;
             border: none;
@@ -33,24 +42,26 @@
         button:hover {
             background-color: #0055aa;
         }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
+        img {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-
-    <h1>Wycena Druku 3D</h1>
-    <input type="file" id="fileInput" accept=".stl">
-    <button onclick="calculatePrice()">Oblicz cenę</button>
-    <button onclick="sendToDiscord()">Wyślij do Discord</button>
-    
-    <div id="output"></div>
+    <h1>Zamów Druk 3D</h1>
+    <div class="container">
+        <img src="kaczka.png" alt="3D-Printed Duck">
+        <input type="file" id="fileInput" accept=".stl">
+        <input type="text" id="address" placeholder="Wpisz adres dostawy">
+        <button onclick="calculatePrice()">Oblicz cenę</button>
+        <button onclick="sendToDiscord()">Zamów i wydrukuj</button>
+        <div id="output"></div>
+    </div>
 
     <script>
-        const WEBHOOK_URL = "TWOJ_WEBHOOK_DISCORD"; // Wpisz tutaj swój webhook Discord
-
+        const WEBHOOK_URL = "TWOJ_WEBHOOK_DISCORD";
         let fileData = null;
 
         function calculatePrice() {
@@ -59,14 +70,10 @@
                 document.getElementById('output').innerText = "Proszę wybrać plik STL!";
                 return;
             }
-
-            fileData = file; // Zapisujemy plik do wysłania później
-            const fileSizeMB = file.size / (1024 * 1024); // Konwersja na MB
-
-            // Przybliżona kalkulacja ceny
-            const pricePerMB = 5.0; // Cena za MB pliku (można dostosować)
+            fileData = file;
+            const fileSizeMB = file.size / (1024 * 1024);
+            const pricePerMB = 5.0;
             const estimatedPrice = (fileSizeMB * pricePerMB).toFixed(2);
-
             document.getElementById('output').innerText = `Szacowana cena: ${estimatedPrice} PLN`;
         }
 
@@ -75,16 +82,21 @@
                 document.getElementById('output').innerText = "Najpierw oblicz cenę!";
                 return;
             }
-
+            const address = document.getElementById('address').value;
+            if (!address) {
+                document.getElementById('output').innerText = "Wpisz adres dostawy!";
+                return;
+            }
             const formData = new FormData();
             formData.append("file", fileData);
+            formData.append("payload_json", JSON.stringify({ content: `Nowe zamówienie! Adres: ${address}` }));
 
             fetch(WEBHOOK_URL, {
                 method: "POST",
                 body: formData
             }).then(response => {
                 if (response.ok) {
-                    document.getElementById('output').innerText = "Plik wysłany na Discord!";
+                    document.getElementById('output').innerText = "Plik i adres wysłane na Discord!";
                 } else {
                     document.getElementById('output').innerText = "Błąd wysyłania!";
                 }
@@ -93,6 +105,5 @@
             });
         }
     </script>
-
 </body>
 </html>
