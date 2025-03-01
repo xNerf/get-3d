@@ -1,1 +1,98 @@
-"hello world" 
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Druk 3D - Wycena</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #00aaff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #0099ff;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        input {
+            background-color: #1e1e1e;
+            color: #00aaff;
+        }
+        button {
+            background-color: #0077cc;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0055aa;
+        }
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Wycena Druku 3D</h1>
+    <input type="file" id="fileInput" accept=".stl">
+    <button onclick="calculatePrice()">Oblicz cenę</button>
+    <button onclick="sendToDiscord()">Wyślij do Discord</button>
+    
+    <div id="output"></div>
+
+    <script>
+        const WEBHOOK_URL = "TWOJ_WEBHOOK_DISCORD"; // Wpisz tutaj swój webhook Discord
+
+        let fileData = null;
+
+        function calculatePrice() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                document.getElementById('output').innerText = "Proszę wybrać plik STL!";
+                return;
+            }
+
+            fileData = file; // Zapisujemy plik do wysłania później
+            const fileSizeMB = file.size / (1024 * 1024); // Konwersja na MB
+
+            // Przybliżona kalkulacja ceny
+            const pricePerMB = 5.0; // Cena za MB pliku (można dostosować)
+            const estimatedPrice = (fileSizeMB * pricePerMB).toFixed(2);
+
+            document.getElementById('output').innerText = `Szacowana cena: ${estimatedPrice} PLN`;
+        }
+
+        function sendToDiscord() {
+            if (!fileData) {
+                document.getElementById('output').innerText = "Najpierw oblicz cenę!";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileData);
+
+            fetch(WEBHOOK_URL, {
+                method: "POST",
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    document.getElementById('output').innerText = "Plik wysłany na Discord!";
+                } else {
+                    document.getElementById('output').innerText = "Błąd wysyłania!";
+                }
+            }).catch(error => {
+                document.getElementById('output').innerText = "Błąd: " + error.message;
+            });
+        }
+    </script>
+
+</body>
+</html>
